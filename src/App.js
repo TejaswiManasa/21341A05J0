@@ -1,40 +1,54 @@
-import React, {useState} from 'react';
 
-function App() {
-  const [numberType,setNumberType]=useState('e');
-  const [responseData,setResponseData]=useState(null);
-  const [error,setError]=useState(null);
-  const handleFetchNumbers=async()=>{
-    const response=await fetch(`http://localhost:9876/numbers/${numberType}`);
-    const data=await response.json();
-    setResponseData(data);
-    setError(null);
-  };
-// }
-return(
-  <div style={{ padding: '20px' }}>
-            <h1>Average Calculator</h1>
-            <div>
-                <label>Select Number Type: </label>
-                <select value={numberType} onChange={(e) => setNumberType(e.target.value)}>
-                    <option value="p">Prime</option>
-                    <option value="f">Fibonacci</option>
-                    <option value="e">Even</option>
-                    <option value="r">Random</option>
-                </select>
-            </div>
-            <button onClick={handleFetchNumbers} style={{ marginTop: '20px' }}>Fetch Numbers</button>
-            {error && <p style={{ color: 'red' }}>{error}</p>}
-            {responseData && (
-                <div style={{ marginTop: '20px' }}>
-                    <h2>Response</h2>
-                    <p><strong>Previous Window State:</strong> {JSON.stringify(responseData.windowPrevState)}</p>
-                    <p><strong>Current Window State:</strong> {JSON.stringify(responseData.windowCurrState)}</p>
-                    <p><strong>Fetched Numbers:</strong> {JSON.stringify(responseData.numbers)}</p>
-                    <p><strong>Average:</strong> {responseData.avg}</p>
-                </div>
-            )}
-        </div>
-);
-}
-export default App;
+
+import React, { useState, useEffect } from 'react';
+
+const TopProducts = ({ companyname, categoryname, top, minPrice, maxPrice }) => {
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const response = await fetch(
+          `http://20.244.56.144/test/companies/${companyname}/categories/${categoryname}/products?top=${top}&minPrice=${minPrice}&maxPrice=${maxPrice}`
+        );
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        setProducts(data);
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProducts();
+  }, [companyname, categoryname, top, minPrice, maxPrice]);
+
+  if (loading) return <p>Loading...</p>;
+  if (error) return <p>Error: {error}</p>;
+
+  return (
+    <div>
+      <h2>Top {top} Products</h2>
+      <ul>
+        {products.map((product, index) => (
+          <li key={index}>
+            <h3>{product.productName}</h3>
+            <p>Price: ${product.price}</p>
+            <p>Rating: {product.rating}</p>
+            <p>Discount: {product.discount}%</p>
+            <p>Availability: {product.availability}</p>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+};
+
+export default TopProducts;
